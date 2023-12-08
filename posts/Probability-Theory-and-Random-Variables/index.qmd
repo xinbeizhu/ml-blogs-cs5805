@@ -1,0 +1,97 @@
+---
+title: Probability Theory and Random Variables
+author: Xinbei Zhu
+date: '2023-11-12'
+categories:
+  - code
+  - analysis
+image: ptrv.png
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd:quarto'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.16.0
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+This blog will talk about Probability Theory and Random Variables. Probability theory and random variables are fundamental concepts in statistics and data science. They are used to model and analyze random phenomena and to make predictions based on data.
+
+For Probability Theory, to put it simply, imagine we're about to roll a dice. We're thinking about what number will come up. It could be 1, 2, 3, 4, 5, or 6. But we're not sure which one it will be. This uncertainty about what will happen is what Probability Theory deals with. It's like a mathematical way of studying and measuring uncertainty.
+
+In Probability Theory, we talk about the "chance" or "likelihood" of something happening. For example, iweou roll a dice, the chance of getting a 4 is 1 out of 6, because there are 6 sides and only one of them is a 4.
+
+For Random Variables, each of these dice numbers is a possible outcome, and we can call them Random Variables.
+
+In Probability Theory, we use Random Variables to describe and calculate the chances of different things happening. For example, if we have a bag with 3 red balls and 2 blue balls, and we pick one without looking, Probability Theory helps us figure out the chance of getting a red ball or a blue ball. And these chances are described using Random Variables.
+
+### Task Demo
+
+I'll use the famous Iris dataset, which contains measurements of iris flowers and their species. I'll create a model to predict the species based on these measurements. This is also a classification task.
+
+**Why this classification task demonstrate Probability Theory and Random Variables?**
+
+The classification task using the Gaussian Naive Bayes classifier. This classifier applies Bayes' Theorem, a fundamental rule in probability theory. Bayes' Theorem calculates the probability of an event based on prior knowledge of conditions that might be related to the event.
+
+In the dataset, features like petal length and width are considered random variables. They are variables because they can vary from one flower to another, and they are random because each measurement is a result of natural variation.
+
+```{python}
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+```
+
+```{python}
+# Load the Iris dataset
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+```
+
+```{python}
+# Create a Gaussian Naive Bayes classifier
+model = GaussianNB()
+
+# Train the model
+model.fit(X_train, y_train)
+```
+
+```{python}
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy}")
+```
+
+```{python}
+# Select a feature for visualization (petal length)
+feature_idx = 2 # Index of petal length in the dataset
+feature = X[:, feature_idx]
+species = iris.target
+
+# Create a DataFrame for seaborn
+df = pd.DataFrame({'Petal Length': feature, 'Species': species})
+df['Species'] = df['Species'].map({0: 'setosa', 1: 'versicolor', 2: 'virginica'})
+
+# Plot the distributions
+sns.histplot(data=df, x='Petal Length', hue='Species', element='step', stat='density', common_norm=False)
+plt.title('Petal Length Distribution by Species')
+plt.show()
+```
+
+This plot illustrates the distribution of petal length across different species. Setosa's petal length primarily ranges between 1 and 2, Versicolor's between 3 and 5, and Virginica's mostly between 5 and 7. There is noticeable overlap in petal lengths for Versicolor and Virginica in the 4-6 range.

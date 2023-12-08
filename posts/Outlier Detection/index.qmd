@@ -1,0 +1,132 @@
+---
+title: Anomaly/Outlier Detection
+author: Xinbei Zhu
+date: 2023-12-1
+categories:
+  - code
+  - analysis
+image: detection.jpg
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd:quarto'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.16.0
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+This blog is about Anomaly/Outlier Detection. Anomaly/Outlier detection, in simple terms, is like finding the odd ones out in a group. Imagine we have a basket of apples, and most of them are red, but a few are green. In this case, the green apples are the outliers because they're different from the majority, which are red.
+
+In the world of data and statistics, outlier detection works in a similar way. It's the process of identifying data points that are significantly different or unusual compared to the rest of the data. Think of it as spotting something that doesn't quite fit in with the rest.
+
+Anomaly or outlier detection in machine learning is a process aimed at identifying data points, events, or observations that deviate significantly from the majority of the data. These anomalies can indicate critical incidents, such as bank fraud, structural defects, medical problems, or errors in text. Anomaly detection is widely used in various fields like finance, healthcare, fault detection, system health monitoring, event detection in sensor networks, and eco-informatics.
+
+Outlier detection is important because these unusual data points can sometimes indicate a problem or an error, like a mistake in measurement, or they could be a sign of something interesting and worth exploring further, like a new trend.
+
+There are three types of anomalies:
+
+-   **Point Anomalies**: A single instance of data is anomalous if it's too far off from the rest. This is the simplest type of anomaly and is common in fraud detection.
+-   **Contextual Anomalies**: Anomalies that depend on the context of a situation. This is common in time-series data where a data point might be anomalous in a certain context but not otherwise.
+-   **Collective Anomalies**: A collection of data points is anomalous with respect to the entire dataset. This is common in intrusion detection or ecosystem disturbances.
+
+### Task Demo
+
+In this task, I utilize the anomaly/outlier detection technology to detect the fraud in credit card. I adopt the **Credit Card Fraud Detection** from Kaggle. I use supervised learning to train a outlier detection model and detect the anomaly.
+
+```{python}
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.cluster import DBSCAN
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
+```
+
+```{python}
+#| echo: false
+import warnings
+warnings.filterwarnings("ignore")
+```
+
+```{python}
+# Load the dataset
+df = pd.read_csv('dataset/creditcard.csv')
+df.head()
+```
+
+```{python}
+# Data preprocessing
+# Truncate the dataset, use the first 50,000 rows
+df_truncated = df.head(50000)
+df = df_truncated
+X = df.drop('Class', axis=1)
+y = df['Class']
+```
+
+```{python}
+# Feature scaling
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Dimensionality Reduction for Visualization
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=0.3, min_samples=10)
+clusters = dbscan.fit_predict(X_pca)
+```
+
+```{python}
+# Scatter Plot before Model Prediction
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=clusters, cmap='Paired', marker='o')
+plt.title('DBSCAN Clustering')
+plt.xlabel('PCA Feature 1')
+plt.ylabel('PCA Feature 2')
+plt.colorbar(label='Cluster Label')
+```
+
+```{python}
+# Splitting the dataset into the Training set and Test set
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=0)
+
+# Handling imbalanced data
+sm = SMOTE(random_state=2)
+X_train_res, y_train_res = sm.fit_resample(X_train, y_train.ravel())
+```
+
+```{python}
+# Training the Random Forest model
+classifier = RandomForestClassifier(n_estimators=100, random_state=0)
+classifier.fit(X_train_res, y_train_res)
+```
+
+```{python}
+# Predicting the Test set results
+y_pred = classifier.predict(X_test)
+
+# Evaluating the model
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+print("Accuracy Score:", accuracy_score(y_test, y_pred))
+
+# Plotting the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.matshow(cm, cmap=plt.cm.gray)
+plt.show()
+```
+
+The results show that the model performs well. The confusion matrix indicates a low number of false positives and false negatives, and the model also exhibits a high accuracy rate.
