@@ -1,1 +1,1 @@
-# ml-blogs-cs5805
+# cs5805-ml-blogs
